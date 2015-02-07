@@ -1,4 +1,7 @@
+#!/usr/bin/env node
+
 var blessed = require('../')
+  , util = require('util')
   , program;
 
 program = blessed.program({
@@ -19,7 +22,7 @@ program.on('mouse', function(data) {
   program.cup(data.y, data.x);
   program.write(' ', 'blue bg');
   program.cup(0, 0);
-  console.log(data);
+  program.write(util.inspect(data));
 });
 
 program.key(['q', 'escape', 'C-c'], function() {
@@ -33,5 +36,21 @@ program.on('keypress', function(ch, data) {
   if (data.name === 'mouse') return;
   program.clear();
   program.cup(0, 0);
-  console.log(data);
+  program.write(util.inspect(data));
 });
+
+program.on('mouse-debug', function(s, buf) {
+  if (s) {
+    program.cup(10, 0);
+    program.write(util.inspect(s));
+  }
+  if (buf) {
+    program.cup(11, 0);
+    buf = Array.prototype.slice.call(buf);
+    program.write(util.inspect(buf));
+  }
+});
+
+// program.getCursor(function(err, data) {
+//   program.write(util.inspect(data));
+// });

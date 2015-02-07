@@ -21,6 +21,8 @@ var blessed = require('blessed');
 // Create a screen object.
 var screen = blessed.screen();
 
+screen.title = 'my window title';
+
 // Create a box perfectly centered horizontally and vertically.
 var box = blessed.box({
   top: 'center',
@@ -46,6 +48,16 @@ var box = blessed.box({
 
 // Append our box to the screen.
 screen.append(box);
+
+// Add a PNG icon to the box (X11 only)
+var icon = blessed.image({
+  parent: box,
+  top: 0,
+  left: 0,
+  width: 'shrink',
+  height: 'shrink',
+  file: __dirname + '/my-program-icon.png'
+});
 
 // If our box is clicked, change the content.
 box.on('click', function(data) {
@@ -194,6 +206,7 @@ The screen on which every other node renders.
 - **grabKeys** - whether the focused element grabs all keypresses.
 - **lockKeys** - prevent keypresses from being received by any element.
 - **hover** - the currently hovered element. only set if mouse events are bound.
+- **title** - set or get window title.
 
 ##### Events:
 
@@ -287,6 +300,7 @@ The base element.
 - **focused** - element is focused.
 - **hidden** - whether the element is hidden.
 - **label** - a simple text label for the element.
+- **hoverText** - a floating text label for the element which appears on mouseover.
 - **align** - text alignment: `left`, `center`, or `right`.
 - **valign** - vertical text alignment: `top`, `middle`, or `bottom`.
 - **shrink** - shrink/flex/grow to content and child elements. width/height
@@ -367,8 +381,12 @@ The base element.
 - **setIndex(z)** - set the z-index of the element (changes rendering order).
 - **setFront()** - put the element in front of its siblings.
 - **setBack()** - put the element in back of its siblings.
-- **setLabel(text)** - set the label text for the top-left corner.
+- **setLabel(text/options)** - set the label text for the top-left corner.
+  example options: `{text:'foo',side:'left'}`
 - **removeLabel()** - remove the label completely.
+- **setHover(text/options)** - set the hover text for the bottom-right corner.
+  example options: `{text:'foo'}`
+- **removeHover()** - remove the hover label completely.
 
 ###### Content Methods
 
@@ -846,6 +864,57 @@ A radio button which can be used in a form element.
 - inherits all from Checkbox.
 
 
+#### Terminal (from Box)
+
+A box which spins up a pseudo terminal and renders the output. (Requires
+term.js to be installed).
+
+##### Options:
+
+- inherits all from Box.
+
+##### Properties:
+
+- inherits all from Box.
+
+##### Events:
+
+- inherits all from Box.
+
+##### Methods:
+
+- inherits all from Box.
+
+
+#### Image (from Box)
+
+Display an image in the terminal (jpeg, png, gif) using w3mimgdisplay. Requires
+w3m to be installed. X11 required: works in xterm, urxvt, and possibly other
+terminals.
+
+##### Options:
+
+- inherits all from Box.
+- **file** - path to image
+- **w3m** - path to w3mimgdisplay
+
+##### Properties:
+
+- inherits all from Box.
+
+##### Events:
+
+- inherits all from Box.
+
+##### Methods:
+
+- inherits all from Box.
+- **setImage(img, callback)** - set the image in the box to a new path.
+- **clearImage(callback)** - clear the current image.
+- **imageSize(img, callback)** - get the size of an image file in pixels.
+- **termSize(callback)** - get the size of the terminal in pixels.
+
+
 ### Positioning
 
 Offsets may be a number, a percentage (e.g. `50%`), or a keyword (e.g.
@@ -1037,11 +1106,41 @@ program.bg('!black');
 program.feed();
 ```
 
+
+## FAQ
+
+1. Why doesn't the Linux console render lines correctly on Ubuntu?
+   You need to install the `ncurses-base` package __and__ the `ncurses-term` package. (#98)
+2. Why do vertical lines look chopped up in iTerm2?
+   All ACS vertical lines look this way in iTerm2.
+3. Why can't I use my mouse in Terminal.app?
+   Terminal.app does not support mouse events.
+4. Why doesn't the Image element appear in my terminal?
+   The Image element uses w3m to display images. This generally only works on
+   X11+xterm/urxvt, but it *may* work on other unix terminals.
+5. Why can't my mouse clicks register beyond 255-287 cells?
+   Older versions of VTE do not support any modern mouse protocol. On top of that,
+   the old x10 protocol it does implement is bugged. Through several workarounds
+   we've managed to get the cell limit from 127 to 255/287. If you're not happy
+   with this, you may want to look into using xterm or urxvt, or a terminal which
+   uses a modern VTE, like gnome-terminal.
+6. Is blessed efficient?
+   Yes. Blessed implements CSR and uses the painter's algorithm to render the
+   screen. It maintains two screen buffers so it only needs to render what has
+   changed on the terminal screen.
+7. Will blessed work with all terminals?
+   Yes. blessed has a terminfo/termcap parser and compiler that was written from
+   scratch. It should work with every terminal as long as a terminfo file is
+   provided. If you notice any compatibility issues in your termial, do not
+   hesitate to post an issue.
+
+
 ## Contribution and License Agreement
 
 If you contribute code to this project, you are implicitly allowing your code
 to be distributed under the MIT license. You are also implicitly verifying that
 all code is your original work. `</legalese>`
+
 
 ## License
 
